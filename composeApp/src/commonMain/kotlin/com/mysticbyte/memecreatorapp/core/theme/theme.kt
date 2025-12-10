@@ -19,3 +19,15 @@ val DarkColorScheme = darkColorScheme(
     error = Color(0xFFB3261E),
     onPrimary = Color(0xFF21005D),
 )
+
+
+@Composable
+fun MemeCreatorTheme(
+    content: @Composable () -> Unit
+) {
+    MaterialTheme(
+        colorScheme = DarkColorScheme,
+        typography = Typography,
+        content = content
+    )
+}
