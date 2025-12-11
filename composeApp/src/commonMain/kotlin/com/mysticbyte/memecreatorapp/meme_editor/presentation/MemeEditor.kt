@@ -58,27 +58,9 @@ fun MemeEditorScreen(
             contentScale = ContentScale.FillWidth
         )
         state.memeTexts.forEach { memeText ->
-            MemeTextBox(
-                memeText = memeText,
-                textBoxInteractionState = state.textBoxInteractionState,
-                maxWidth = 500.dp,
-                maxHeight = 500.dp,
-                onClick = {
-                    onAction(MemeEditorAction.OnSelectMemeText(memeText.id))
-                },
-                onDoubleClick = {
-                    onAction(MemeEditorAction.OnEditMemeText(memeText.id))
-                },
-                onTextChange = {
-                    onAction(MemeEditorAction.OnMemeTextChange(memeText.id, it))
-                },
-                onDeleteClick = {
-                    onAction(MemeEditorAction.OnDeleteMemeTextClick(memeText.id))
-                }
-            )
+
         }
     }
-
 }
 
 @Preview
