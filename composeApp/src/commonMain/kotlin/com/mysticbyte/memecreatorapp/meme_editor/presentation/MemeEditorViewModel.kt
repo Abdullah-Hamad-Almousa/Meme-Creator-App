@@ -35,14 +35,33 @@ class MemeEditorViewModel : ViewModel() {
             MemeEditorAction.OnConfirmLeaveWithoutSaving -> TODO()
             is MemeEditorAction.OnContainerSizeChange -> updateContainerSize(action.size)
             is MemeEditorAction.OnDeleteMemeTextClick -> TODO()
-            is MemeEditorAction.OnEditMemeText -> TODO()
+            is MemeEditorAction.OnEditMemeText -> editMemeText(action.id)
             MemeEditorAction.OnGoBackClick -> TODO()
-            is MemeEditorAction.OnMemeTextChange -> TODO()
+            is MemeEditorAction.OnMemeTextChange -> updateMemeText(action.id, action.text)
             is MemeEditorAction.OnMemeTextTransformChange -> TODO()
             is MemeEditorAction.OnSaveMemeClick -> TODO()
             is MemeEditorAction.OnSelectMemeText -> TODO()
             MemeEditorAction.OnTapOutsideSlectedText -> TODO()
         }
+    }
+
+    private fun updateMemeText(id: String, text: String) {
+
+        _state.update { it.copy(
+            memeTexts = it.memeText.map { memeText ->
+                if (it.copy()){
+                    it.copy(text = text)
+                } else memeText
+
+            }
+        ) }
+
+    }
+
+    private fun editMemeText(id: String) {
+        _state.update {it.copy(
+            textBoxInteractionState = TextBoxInteractionState.Editing(id)
+        )}
     }
 
     private fun updateContainerSize(size: IntSize){
