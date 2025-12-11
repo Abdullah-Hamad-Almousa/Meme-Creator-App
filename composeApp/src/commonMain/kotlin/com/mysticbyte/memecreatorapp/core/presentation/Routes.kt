@@ -2,7 +2,7 @@ package com.mysticbyte.memecreatorapp.core.presentation
 
 import kotlinx.serialization.Serializable
 
-sealed interface Route{
+sealed interface Route {
 
     @Serializable
     data object MemeGallery: Route
@@ -11,5 +11,4 @@ sealed interface Route{
     data class MemeEditor(
         val templateId: String
     ): Route
-
 }
