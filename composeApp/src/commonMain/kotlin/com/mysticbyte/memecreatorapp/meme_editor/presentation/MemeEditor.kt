@@ -57,27 +57,26 @@ fun MemeEditorScreen(
             modifier = Modifier.fillMaxWidth(),
             contentScale = ContentScale.FillWidth
         )
-        MemeTextBox(
-            memeText = MemeText(
-                id = "hello",
-                text = "TAP TO EDIT",
-            ),
-            textBoxInteractionState = state.textBoxInteractionState,
-            maxWidth = 500.dp,
-            maxHeight = 500.dp,
-            onClick = {
-                onAction(MemeEditorAction.OnSelectMemeText("hello"))
-            },
-            onDoubleClick = {
-                onAction(MemeEditorAction.OnEditMemeText("hello"))
-            },
-            onTextChange = {
-                onAction(MemeEditorAction.OnMemeTextChange("hello", it))
-            },
-            onDeleteClick = {
-                onAction(MemeEditorAction.OnDeleteMemeTextClick("hello"))
-            }
-        )
+        state.memeTexts.forEach { memeText ->
+            MemeTextBox(
+                memeText = memeText,
+                textBoxInteractionState = state.textBoxInteractionState,
+                maxWidth = 500.dp,
+                maxHeight = 500.dp,
+                onClick = {
+                    onAction(MemeEditorAction.OnSelectMemeText(memeText.id))
+                },
+                onDoubleClick = {
+                    onAction(MemeEditorAction.OnEditMemeText(memeText.id))
+                },
+                onTextChange = {
+                    onAction(MemeEditorAction.OnMemeTextChange(memeText.id, it))
+                },
+                onDeleteClick = {
+                    onAction(MemeEditorAction.OnDeleteMemeTextClick(memeText.id))
+                }
+            )
+        }
     }
 
 }
