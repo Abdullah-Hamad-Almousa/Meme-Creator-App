@@ -44,8 +44,7 @@ fun MemeTextBox(
     onTextChange: (String) -> Unit,
     onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier
-){
-
+) {
     val memeTextFocusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -64,39 +63,38 @@ fun MemeTextBox(
         }
     }
 
-
-    Box(modifier){
-
+    Box(modifier) {
+        val isMemeTextSelected = (textBoxInteractionState is TextBoxInteractionState.Selected &&
+                textBoxInteractionState.textBoxId == memeText.id) ||
+                (textBoxInteractionState is TextBoxInteractionState.Editing &&
+                        textBoxInteractionState.textBoxId == memeText.id)
         Box(
             modifier = Modifier
-                .sizeIn(
-                    maxWidth,
-                    maxHeight
-                )
+                .sizeIn(maxWidth = maxWidth, maxHeight = maxHeight)
                 .border(
                     width = 2.dp,
-                    color = if (textBoxInteractionState is TextBoxInteractionState.Selected ||
-                        textBoxInteractionState is TextBoxInteractionState.Editing){
+                    color = if(isMemeTextSelected) {
                         Color.White
                     } else Color.Transparent,
                     shape = RoundedCornerShape(4.dp)
                 )
                 .background(
-                    color = if (textBoxInteractionState is TextBoxInteractionState){
+                    color = if(textBoxInteractionState is TextBoxInteractionState.Editing &&
+                        textBoxInteractionState.textBoxId == memeText.id) {
                         Color.Black.copy(alpha = 0.15f)
-                    }else Color.Transparent,
+                    } else Color.Transparent,
                     shape = RoundedCornerShape(4.dp)
                 )
                 .combinedClickable(
                     onClick = onClick,
                     onDoubleClick = onDoubleClick
                 )
-        ){
-
+        ) {
             val strokeTextStyle = rememberStrokeTextStyle()
             val fillTextStyle = rememberFillTextStyle()
             val textPadding = 8.dp
-            if (textBoxInteractionState is TextBoxInteractionState.Editing){
+            if(textBoxInteractionState is TextBoxInteractionState.Editing &&
+                textBoxInteractionState.textBoxId == memeText.id) {
                 OutlinedImpactTextField(
                     text = memeText.text,
                     onTextChange = onTextChange,
@@ -108,7 +106,7 @@ fun MemeTextBox(
                         .focusRequester(memeTextFocusRequester)
                         .padding(textPadding)
                 )
-            }else{
+            } else {
                 OutlinedImpactText(
                     text = memeText.text,
                     strokeTextStyle = strokeTextStyle,
@@ -117,41 +115,30 @@ fun MemeTextBox(
                         .padding(textPadding)
                 )
             }
-
-            if (textBoxInteractionState is TextBoxInteractionState.Selected ||
-                textBoxInteractionState is TextBoxInteractionState.Editing){
-
-                Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .align (Alignment.TopEnd)
-                        .offset(
-                            x = (12).dp,
-                            y = -(12).dp
-                        )
-                        .clip(CircleShape)
-                        .background(Color(0xFFB3261E))
-                        .clickable{
-                            onDeleteClick()
-                        },
-                    contentAlignment = Alignment.Center
-                ){
-
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(16.dp)
-                    )
-
-                }
-
-            } else {
-
-            }
-
         }
-
+        if(isMemeTextSelected) {
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .align(Alignment.TopEnd)
+                    .offset(
+                        x = 12.dp,
+                        y = -(12).dp
+                    )
+                    .clip(CircleShape)
+                    .background(Color(0xFFB3261E))
+                    .clickable {
+                        onDeleteClick()
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
     }
-
 }

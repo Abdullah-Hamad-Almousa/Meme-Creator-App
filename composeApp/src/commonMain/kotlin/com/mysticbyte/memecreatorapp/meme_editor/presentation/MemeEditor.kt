@@ -14,18 +14,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.mysticbyte.memecreatorapp.core.presentation.MemeTemplate
 
+import com.mysticbyte.memecreatorapp.core.presentation.MemeTemplate
 import com.mysticbyte.memecreatorapp.core.theme.MemeCreatorTheme
 import com.mysticbyte.memecreatorapp.meme_editor.presentation.components.BottomBar
 import com.mysticbyte.memecreatorapp.meme_editor.presentation.components.DraggableContainer
-import com.mysticbyte.memecreatorapp.meme_editor.presentation.components.MemeTextBox
+
 import memecreatorapp.composeapp.generated.resources.Res
 import memecreatorapp.composeapp.generated.resources.meme_template_01
-import org.jetbrains.compose.resources.painterResource
 
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -57,7 +56,7 @@ fun MemeEditorScreen(
             .fillMaxSize()
             .pointerInput(Unit) {
                 detectTapGestures {
-                    onAction(MemeEditorAction.OnTapOutsideSlectedText)
+                    onAction(MemeEditorAction.OnTapOutsideSelectedText)
                 }
             },
         bottomBar = {

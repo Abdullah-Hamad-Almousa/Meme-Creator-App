@@ -7,10 +7,10 @@ import com.mysticbyte.memecreatorapp.core.presentation.MemeTemplate
 sealed interface MemeEditorAction {
     data object OnGoBackClick: MemeEditorAction
     data object OnConfirmLeaveWithoutSaving: MemeEditorAction
-    data object OnCancelLeaveWithoutSaving: MemeEditorAction
+    data object OnDismissLeaveWithoutSaving: MemeEditorAction
 
     data class OnSaveMemeClick(val memeTemplate: MemeTemplate): MemeEditorAction
-    data object OnTapOutsideSlectedText: MemeEditorAction
+    data object OnTapOutsideSelectedText: MemeEditorAction
 
     data object OnAddTextClick: MemeEditorAction
     data class OnSelectMemeText(val id: String): MemeEditorAction

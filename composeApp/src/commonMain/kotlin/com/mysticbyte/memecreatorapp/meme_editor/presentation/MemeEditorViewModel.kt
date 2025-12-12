@@ -34,7 +34,7 @@ class MemeEditorViewModel : ViewModel() {
     fun onAction(action: MemeEditorAction) {
         when (action) {
             MemeEditorAction.OnAddTextClick -> addText()
-            MemeEditorAction.OnCancelLeaveWithoutSaving -> TODO()
+            MemeEditorAction.OnConfirmLeaveWithoutSaving  -> TODO()
             MemeEditorAction.OnConfirmLeaveWithoutSaving -> TODO()
             is MemeEditorAction.OnContainerSizeChange -> updateContainerSize(action.size)
             is MemeEditorAction.OnDeleteMemeTextClick -> deleteMemeText(action.id)
@@ -49,7 +49,8 @@ class MemeEditorViewModel : ViewModel() {
             )
             is MemeEditorAction.OnSaveMemeClick -> TODO()
             is MemeEditorAction.OnSelectMemeText -> selectMemeText(action.id)
-            MemeEditorAction.OnTapOutsideSlectedText -> unselectMemeText()
+            MemeEditorAction.OnTapOutsideSelectedText -> unselectMemeText()
+            else -> 0
         }
     }
 
