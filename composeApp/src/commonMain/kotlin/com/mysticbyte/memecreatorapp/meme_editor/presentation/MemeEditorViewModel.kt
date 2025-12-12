@@ -34,12 +34,12 @@ class MemeEditorViewModel : ViewModel() {
     fun onAction(action: MemeEditorAction) {
         when (action) {
             MemeEditorAction.OnAddTextClick -> addText()
-            MemeEditorAction.OnConfirmLeaveWithoutSaving  -> TODO()
-            MemeEditorAction.OnConfirmLeaveWithoutSaving -> TODO()
+            MemeEditorAction.OnConfirmLeaveWithoutSaving  -> confirmLeave()
             is MemeEditorAction.OnContainerSizeChange -> updateContainerSize(action.size)
             is MemeEditorAction.OnDeleteMemeTextClick -> deleteMemeText(action.id)
+            MemeEditorAction.OnDismissLeaveWithoutSaving -> dismissConfirmLeavingDialog()
             is MemeEditorAction.OnEditMemeText -> editMemeText(action.id)
-            MemeEditorAction.OnGoBackClick -> TODO()
+            MemeEditorAction.OnGoBackClick -> attemptToGoBack()
             is MemeEditorAction.OnMemeTextChange -> updateMemeText(action.id, action.text)
             is MemeEditorAction.OnMemeTextTransformChange -> transformMemeText(
                 id = action.id,
@@ -50,7 +50,31 @@ class MemeEditorViewModel : ViewModel() {
             is MemeEditorAction.OnSaveMemeClick -> TODO()
             is MemeEditorAction.OnSelectMemeText -> selectMemeText(action.id)
             MemeEditorAction.OnTapOutsideSelectedText -> unselectMemeText()
-            else -> 0
+            else -> Unit
+        }
+    }
+
+    private fun dismissConfirmLeavingDialog() {
+        _state.update { it.copy(
+            isLeavingWithoutSaving = false
+        ) }
+    }
+
+    private fun confirmLeave() {
+        _state.update { it.copy(
+            hasLeftEditor = true
+        ) }
+    }
+
+    private fun attemptToGoBack() {
+        if (state.value.memeTexts.isEmpty()) {
+            _state.update { it.copy(
+                hasLeftEditor = true
+            ) }
+        } else {
+            _state.update { it.copy(
+                isLeavingWithoutSaving = true
+            ) }
         }
     }
 

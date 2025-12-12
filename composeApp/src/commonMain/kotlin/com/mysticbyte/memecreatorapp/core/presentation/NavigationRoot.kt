@@ -29,7 +29,10 @@ fun NavigationRoot() {
                 memeTemplate.first { it.id == templateId }
             }
             MemeEditorRoot(
-                template = template
+                template = template,
+                onBackClick = {
+                    navController.navigateUp()
+                }
             )
         }
     }
