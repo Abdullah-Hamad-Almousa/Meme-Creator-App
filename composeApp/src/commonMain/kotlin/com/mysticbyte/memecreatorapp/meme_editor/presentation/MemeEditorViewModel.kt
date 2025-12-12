@@ -1,5 +1,6 @@
 package com.mysticbyte.memecreatorapp.meme_editor.presentation
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,6 +10,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class MemeEditorViewModel : ViewModel() {
 
@@ -30,7 +33,7 @@ class MemeEditorViewModel : ViewModel() {
 
     fun onAction(action: MemeEditorAction) {
         when (action) {
-            MemeEditorAction.OnAddTextClick -> TODO()
+            MemeEditorAction.OnAddTextClick -> addText()
             MemeEditorAction.OnCancelLeaveWithoutSaving -> TODO()
             MemeEditorAction.OnConfirmLeaveWithoutSaving -> TODO()
             is MemeEditorAction.OnContainerSizeChange -> updateContainerSize(action.size)
@@ -38,11 +41,67 @@ class MemeEditorViewModel : ViewModel() {
             is MemeEditorAction.OnEditMemeText -> editMemeText(action.id)
             MemeEditorAction.OnGoBackClick -> TODO()
             is MemeEditorAction.OnMemeTextChange -> updateMemeText(action.id, action.text)
-            is MemeEditorAction.OnMemeTextTransformChange -> TODO()
+            is MemeEditorAction.OnMemeTextTransformChange -> transformMemeText(
+                id = action.id,
+                offset = action.offset,
+                rotation = action.rotation,
+                scale = action.scale
+            )
             is MemeEditorAction.OnSaveMemeClick -> TODO()
             is MemeEditorAction.OnSelectMemeText -> selectMemeText(action.id)
-            MemeEditorAction.OnTapOutsideSlectedText -> TODO()
+            MemeEditorAction.OnTapOutsideSlectedText -> unselectMemeText()
         }
+    }
+
+    private fun transformMemeText(
+        id: String,
+        offset: Offset,
+        rotation: Float,
+        scale: Float
+    ) {
+
+        _state.update {
+            val (width, height) = it.templateSize
+            it.copy(
+            memeTexts = it.memeTexts.map { memeText ->
+
+                if (memeText.id == id) {
+                    memeText.copy(
+                        offsetRatioX = offset.x / width,
+                        offsetRatioY = offset.y / height,
+                        roation = rotation,
+                        scale = scale
+                    )
+                }
+                else memeText
+
+            }
+        ) }
+
+    }
+
+    private fun unselectMemeText() {
+        _state.update { it.copy(
+            textBoxInteractionState = TextBoxInteractionState.None
+        ) }
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    private fun addText() {
+        val id = Uuid.random().toString()
+
+        val memeText = MemeText(
+            id = id,
+            text = "TAP TO EDIT",
+            offsetRatioX = 0.25f,
+            offsetRatioY = 0.25f
+        )
+
+        _state.update { it.copy(
+            memeTexts = it.memeTexts + memeText,
+            textBoxInteractionState = TextBoxInteractionState.Editing(id)
+        ) }
+
     }
 
     private fun deleteMemeText(id: String) {

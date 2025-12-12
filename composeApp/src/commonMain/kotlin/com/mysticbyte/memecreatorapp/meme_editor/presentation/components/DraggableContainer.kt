@@ -8,15 +8,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.dp
-import com.mysticbyte.memecreatorapp.meme_editor.presentation.MemeEditorAction
 import com.mysticbyte.memecreatorapp.meme_editor.presentation.MemeText
 import com.mysticbyte.memecreatorapp.meme_editor.presentation.TextBoxInteractionState
 
@@ -32,7 +29,7 @@ fun DraggableContainer(
     modifier: Modifier = Modifier) {
 
     val density = LocalDensity.current
-    BoxWithConstraints {
+    BoxWithConstraints(modifier) {
         val parentWidth = constraints.maxWidth
         val parentHeight = constraints.maxHeight
 
@@ -47,6 +44,22 @@ fun DraggableContainer(
 
             val transformableState = rememberTransformableState {
                 scaleChange, panChange, rotationChange ->
+                val newRotation = child.roation + rotationChange
+
+                val newScale = (child.scale * scaleChange).coerceIn(0.5f, 2f)
+
+                val newOffset = Offset(
+                    x = (child.offsetRatioX * parentWidth + panChange.x),
+                    y = (child.offsetRatioY * parentHeight + panChange.y)
+                )
+
+                onChildTransformChanged(
+                    child.id,
+                    newOffset,
+                    newRotation,
+                    newScale
+                )
+
             }
 
             Box(
