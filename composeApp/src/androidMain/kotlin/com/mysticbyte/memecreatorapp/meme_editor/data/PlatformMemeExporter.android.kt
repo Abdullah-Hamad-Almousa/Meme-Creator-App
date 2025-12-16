@@ -14,11 +14,13 @@ import android.text.TextPaint
 import androidx.compose.ui.unit.IntSize
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.withTranslation
+import com.mysticbyte.memecreatorapp.R
 
 import com.mysticbyte.memecreatorapp.meme_editor.domain.MemeExporter
 import com.mysticbyte.memecreatorapp.meme_editor.domain.SaveToStorageStrategy
 import com.mysticbyte.memecreatorapp.meme_editor.presentation.MemeText
 import com.mysticbyte.memecreatorapp.meme_editor.presentation.util.MemeRenderCalculator
+import com.mysticbyte.memecreatorapp.meme_editor.presentation.util.ScaledMemeText
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
@@ -31,7 +33,7 @@ actual class PlatformMemeExporter(
     private val context: Context
 ) : MemeExporter {
 
-    private val memeRenderer = MemeRenderCalculator(
+    private val memeRenderCalculator = MemeRenderCalculator(
         density = context.resources.displayMetrics.density
     )
 
@@ -41,10 +43,148 @@ actual class PlatformMemeExporter(
         templateSize: IntSize,
         saveToStorageStrategy: SaveToStorageStrategy,
         fileName: String
-    ) {
+    ) = withContext(Dispatchers.IO) {
 
         var bitmap: Bitmap? = null
         var outputBitmap: Bitmap? = null
 
+        try {
+
+            bitmap = BitmapFactory.decodeByteArray(
+                backgroundImageByte,
+                0,
+                backgroundImageByte.size
+            )
+            outputBitmap = renderMeme(
+                background = bitmap,
+                memeTexts = memeTexts,
+                templateSize = templateSize
+            )
+
+            val fillPath = saveToStorageStrategy.getFilePath(fileName)
+            val file = File(fillPath)
+
+            FileOutputStream(file).use { out ->
+                outputBitmap.compress(
+                    Bitmap.CompressFormat.JPEG,
+                    90,
+                    out
+                )
+            }
+            Result.success(file.absolutePath)
+        } catch (e: Exception) {
+            coroutineContext.ensureActive()
+            Result.failure(e)
+        } finally {
+            bitmap?.recycle()
+            outputBitmap?.recycle()
+        }
+
     }
+
+    private suspend fun renderMeme(
+        background: Bitmap,
+        memeTexts: List<MemeText>,
+        templateSize: IntSize
+    ): Bitmap = withContext(Dispatchers.Default) {
+
+        val output = background.copy(
+            Bitmap.Config.ARGB_8888,
+            true
+        )
+        val canvas = Canvas(output)
+
+        val scaleFactors = memeRenderCalculator.calculateScaleFactors(
+            bitmapWidth = background.width,
+            bitmapHeight = background.height,
+            templateSize = templateSize
+        )
+
+        val scaledMemeTexts = memeTexts.map {
+            memeRenderCalculator.calculateScaledMemeText(
+                memeText = it,
+                scaleFactors = scaleFactors,
+                templateSize = templateSize
+            )
+        }
+
+        scaledMemeTexts.forEach { scaledMemeText ->
+            drawText(canvas, scaledMemeText)
+        }
+
+        output
+    }
+
+    private fun drawText(canvas: Canvas, memeText: ScaledMemeText){
+        val impactTypeface = ResourcesCompat.getFont(
+            context,
+            R.font.impact
+        ) ?: Typeface.DEFAULT_BOLD
+
+        val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = memeText.strokeWidth
+            textSize = memeText.scaledFontSizePx
+            typeface = impactTypeface
+            color = Color.BLACK
+        }
+
+        val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.FILL
+            textSize = memeText.scaledFontSizePx
+            typeface = impactTypeface
+            color = Color.WHITE
+        }
+
+        val strokeLayout = StaticLayout.Builder.obtain(
+            memeText.text,
+            0,
+            memeText.text.length,
+            TextPaint(strokePaint),
+            memeText.constraintWidth
+        )
+
+            .setAlignment(Layout.Alignment.ALIGN_CENTER)
+            .setIncludePad(false)
+            .build()
+
+        val fillLayout = StaticLayout.Builder.obtain(
+            memeText.text,
+            0,
+            memeText.text.length,
+            TextPaint(fillPaint),
+            memeText.constraintWidth
+        )
+            .setAlignment(Layout.Alignment.ALIGN_CENTER)
+            .setIncludePad(false)
+            .build()
+
+        val textHeight = strokeLayout.height.toFloat()
+        val textWidth = (0 until strokeLayout.lineCount)
+            .maxOfOrNull { strokeLayout.getLineWidth(it) }
+            ?: 0f
+
+        val boxWidth = textWidth + memeText.textPaddingX * 2
+        val boxHeight = textHeight + memeText.textPaddingY
+
+        val centerX = memeText.scaledOffset.x + boxWidth / 2f
+        val centerY = memeText.scaledOffset.y + boxHeight / 2f
+
+        canvas.withTranslation(centerX, centerY) {
+            scale(memeText.scale, memeText.scale)
+            rotate(memeText.rotation)
+
+            val textCenteringOffset = (memeText.constraintWidth - textWidth) / 2f
+            translate(
+                -boxWidth / 2f + memeText.textPaddingX - textCenteringOffset,
+                -boxHeight / 2f + memeText.textPaddingY
+            )
+
+            strokeLayout.draw(this)
+            fillLayout.draw(this)
+
+        }
+
+    }
+
 }

@@ -15,8 +15,6 @@ expect class PlatformMemeExporter: MemeExporter {
         templateSize: IntSize,
         saveToStorageStrategy: SaveToStorageStrategy,
         fileName: String
-    )
-
-
+    ): Result<String>
 
 }

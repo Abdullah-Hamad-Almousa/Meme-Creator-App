@@ -17,6 +17,6 @@ interface MemeExporter{
         saveToStorageStrategy: SaveToStorageStrategy,
         fileName: String = "meme_${Uuid.random()}.jpg"
 
-    )
+    ): Result<String>
 
 }
