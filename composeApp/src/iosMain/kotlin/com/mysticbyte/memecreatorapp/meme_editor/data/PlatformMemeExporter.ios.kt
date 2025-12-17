@@ -55,6 +55,11 @@ import platform.UIKit.drawWithRect
 import kotlin.math.PI
 
 actual class PlatformMemeExporter : MemeExporter {
+
+    private val memeRenderCalculator = MemeRenderCalculator(
+        density = UIScreen.mainScreen.scale.toFloat()
+    )
+
     actual override suspend fun exportMeme(
         backgroundImageByte: ByteArray,
         memeTexts: List<MemeText>,
@@ -65,12 +70,41 @@ actual class PlatformMemeExporter : MemeExporter {
         try {
             val backgroundImageByte = createBackgroundImage(
                 imageBytes = backgroundImageByte
+            ) ?: return@withContext Result.failure(Exception("Failed to create background Image"))
+            val outputImage = renderMeme(
+                backgroundImage = backgroundImageByte,
+                memeTexts = memeTexts,
+                templateSize = templateSize,
+            ) ?: return@withContext Result.failure(Exception("Failed to create output Image"))
+
+            saveMemeToFile(
+                image = outputImage,
+                fileName = fileName,
+                saveToStorageStrategy = saveToStorageStrategy
             )
 
         }
         catch (e: Exception){
             coroutineContext.ensureActive()
             Result.failure(e)
+        }
+    }
+
+    private fun saveMemeToFile(
+        image: UIImage,
+        fileName: String,
+        saveToStorageStrategy: SaveToStorageStrategy
+    ) : Result<String> {
+        val jpegData = UIImageJPEGRepresentation(image, 90.0)
+            ?: return Result.failure(Exception("Failed to create JPEG image"))
+
+        val filePath = saveToStorageStrategy.getFilePath(fileName)
+        val saved = jpegData.writeToFile(filePath, atomically = true)
+
+        return if(saved) {
+            Result.success(filePath)
+        } else {
+            Result.failure(Exception("Failed to save file"))
         }
     }
 
@@ -116,6 +150,101 @@ actual class PlatformMemeExporter : MemeExporter {
                 width = imageSize.width.toDouble(),
                 height = imageSize.height.toDouble()
             )
+        )
+
+        val scaleFactors = memeRenderCalculator.calculateScaleFactors(
+            bitmapWidth = imageSize.width,
+            bitmapHeight = imageSize.height,
+            templateSize = templateSize
+        )
+
+        val scaledMemeTexts = memeTexts.map { memeText ->
+            memeRenderCalculator.calculateScaledMemeText(
+                memeText = memeText,
+                scaleFactors = scaleFactors,
+                templateSize = templateSize
+            )
+        }
+
+        scaledMemeTexts.forEach { memeText ->
+            drawText(
+                context = context,
+                memeText = memeText
+            )
+        }
+
+        val resultImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+
+        return resultImage
+
+    }
+
+    private fun drawText(context: CGContextRef, memeText: ScaledMemeText) {
+        val textNS = NSString.create(memeText.text)
+        val attributes = createMemeTextAttributes(
+            fontSize = memeText.scaledFontSizePx,
+            strokeWidth = memeText.strokeWidth
+        )
+
+        val boundingRect = textNS?.boundingRectWithSize(
+            size = CGSizeMake(memeText.constraintWidth.toDouble(), CGFloat.MAX_VALUE),
+            options = 1L shl 0,
+            attributes = attributes,
+            context = null
+        ) ?: return
+
+        val textHeight = boundingRect.useContents { size.height.toFloat() }
+        val textWidth = boundingRect.useContents { size.width.toFloat() }
+
+        val boxWidth = textWidth + memeText.textPaddingX * 2
+        val boxHeight = textHeight + memeText.textPaddingY * 2
+
+        val centerX = memeText.scaledOffset.x + boxWidth / 2
+        val centerY = memeText.scaledOffset.y + boxHeight / 2
+
+        CGContextSaveGState(context)
+        CGContextTranslateCTM(context, centerX.toDouble(), centerY.toDouble())
+        CGContextScaleCTM(context, memeText.scale.toDouble(), memeText.scale.toDouble())
+        CGContextRotateCTM(context, memeText.rotation * PI / 180.0)
+
+        val textCenteringOffset = (memeText.constraintWidth - textWidth) / 2
+        CGContextTranslateCTM(
+            context,
+            (-boxWidth / 2f + memeText.textPaddingX - textCenteringOffset).toDouble(),
+            (-boxHeight / 2f + memeText.textPaddingY).toDouble(),
+        )
+
+        textNS.drawWithRect(
+            rect = CGRectMake(0.0, 0.0, memeText.constraintWidth.toDouble(),
+                textHeight.toDouble()),
+            options = 1L shl 0,
+            attributes = attributes,
+            context = null
+        )
+
+        CGContextRestoreGState(context)
+
+    }
+
+    private fun createMemeTextAttributes(
+        fontSize: Float,
+        strokeWidth: Float
+    ): Map<Any?, Any?> {
+        val font = UIFont.fontWithName("Impact", fontSize.toDouble())
+            ?: UIFont.boldSystemFontOfSize(fontSize.toDouble())
+
+        val paragraphStyle = NSMutableParagraphStyle().apply {
+            setAlignment(NSTextAlignmentCenter)
+            setLineBreakMode(NSLineBreakByWordWrapping)
+        }
+
+        return mapOf(
+            NSFontAttributeName to font,
+            NSForegroundColorAttributeName to UIColor.whiteColor,
+            NSStrokeColorAttributeName to UIColor.blackColor,
+            NSStrokeWidthAttributeName to NSNumber(strokeWidth),
+            NSParagraphStyleAttributeName to paragraphStyle
         )
     }
 
