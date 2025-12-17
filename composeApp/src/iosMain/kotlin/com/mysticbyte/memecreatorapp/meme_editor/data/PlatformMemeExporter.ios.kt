@@ -243,7 +243,7 @@ actual class PlatformMemeExporter : MemeExporter {
             NSFontAttributeName to font,
             NSForegroundColorAttributeName to UIColor.whiteColor,
             NSStrokeColorAttributeName to UIColor.blackColor,
-            NSStrokeWidthAttributeName to NSNumber(strokeWidth),
+            NSStrokeWidthAttributeName to NSNumber(-strokeWidth),
             NSParagraphStyleAttributeName to paragraphStyle
         )
     }

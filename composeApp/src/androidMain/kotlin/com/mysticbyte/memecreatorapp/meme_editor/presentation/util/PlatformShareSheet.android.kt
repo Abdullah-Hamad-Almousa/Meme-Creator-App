@@ -8,7 +8,7 @@ import java.io.File
 actual class PlatformShareSheet(
     private val context: Context
 ) {
-    actual suspend fun shareFile(filePath: String) {
+    actual fun shareFile(filePath: String) {
 
         val file = File(filePath)
 

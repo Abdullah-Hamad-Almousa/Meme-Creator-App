@@ -2,9 +2,18 @@ package com.mysticbyte.memecreatorapp.meme_editor.data
 
 import com.mysticbyte.memecreatorapp.meme_editor.domain.SaveToStorageStrategy
 
+import platform.Foundation.NSCachesDirectory
+import platform.Foundation.NSSearchPathForDirectoriesInDomains
+import platform.Foundation.NSUserDomainMask
+
 actual class CacheStorageStrategy :
     SaveToStorageStrategy {
     actual override fun getFilePath(fileName: String): String {
-        TODO("Not yet implemented")
+        val cacheDirectory = NSSearchPathForDirectoriesInDomains(
+            NSCachesDirectory,
+            NSUserDomainMask,
+            true
+        ).firstOrNull() as? String ?: throw IllegalStateException("Could not find cache directory!")
+        return "$cacheDirectory/$fileName"
     }
 }
